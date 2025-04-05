@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 
 import 'package:eato/Model/coustomUser.dart';
-
+//simple change
 class SignUpPage extends StatelessWidget {
   final String role;
 
