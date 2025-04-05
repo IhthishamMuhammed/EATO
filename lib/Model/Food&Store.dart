@@ -5,7 +5,7 @@ class Food {
   final double price;
   final String time; // Breakfast, Lunch, Dinner
   final String imageUrl; // Food image URL
-
+//git from ihthisam
   Food({
     required this.id,
     required this.name,
