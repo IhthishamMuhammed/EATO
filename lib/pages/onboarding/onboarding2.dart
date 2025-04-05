@@ -1,4 +1,5 @@
 import 'package:eato/pages/onboarding/onboarding3.dart';
+import 'package:eato/pages/onboarding/onboarding4.dart';
 import 'package:flutter/material.dart';
 
 class FreeMembershipPage extends StatelessWidget {
@@ -23,10 +24,13 @@ class FreeMembershipPage extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(10.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start, // Align children at the top
-          crossAxisAlignment: CrossAxisAlignment.center, // Keep children horizontally centered
+          mainAxisAlignment:
+              MainAxisAlignment.start, // Align children at the top
+          crossAxisAlignment:
+              CrossAxisAlignment.center, // Keep children horizontally centered
           children: [
-            const SizedBox(height: 10.0), // Add small space between AppBar and Image
+            const SizedBox(
+                height: 10.0), // Add small space between AppBar and Image
             Image.asset(
               'assets/images/flogo.png',
               height: 400,
@@ -55,19 +59,28 @@ class FreeMembershipPage extends StatelessWidget {
             ),
             const SizedBox(height: 65.0),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Keep buttons aligned as needed
+              mainAxisAlignment: MainAxisAlignment
+                  .spaceBetween, // Keep buttons aligned as needed
               children: [
                 TextButton(
                   onPressed: () {
-                    // Navigate to the last step or skip action
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>  RoleSelectionPage(),
+                      ),
+                    );
                   },
                   style: TextButton.styleFrom(
-                    side: const BorderSide(color: Colors.black, width: 1.0), // Black border
+                    side: const BorderSide(
+                        color: Colors.black, width: 1.0), // Black border
                     foregroundColor: Colors.black, // Text color
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Optional padding
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 8.0), // Optional padding
                     minimumSize: const Size(150, 50),
                     shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18.0), // Adjust corner radius here
+                      borderRadius: BorderRadius.circular(
+                          18.0), // Adjust corner radius here
                     ),
                   ),
                   child: const Text("Skip", style: TextStyle(fontSize: 18.0)),
@@ -77,7 +90,7 @@ class FreeMembershipPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => GetStartedPage(),
+                        builder: (context) => const GetStartedPage(),
                       ),
                     );
                   },
@@ -86,14 +99,15 @@ class FreeMembershipPage extends StatelessWidget {
                     foregroundColor: Colors.white,
                     minimumSize: const Size(150, 50),
                     shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18.0), // Adjust corner radius here
+                      borderRadius: BorderRadius.circular(
+                          18.0), // Adjust corner radius here
                     ),
-                    
                   ),
-                  child: const Text("Next", 
-                  style: TextStyle(
-                  fontSize: 18.0, 
-                  ),
+                  child: const Text(
+                    "Next",
+                    style: TextStyle(
+                      fontSize: 18.0,
+                    ),
                   ),
                 )
               ],

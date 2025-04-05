@@ -2,31 +2,20 @@ import 'package:eato/pages/auth/login.dart';
 import 'package:flutter/material.dart';
 
 class RoleSelectionPage extends StatefulWidget {
+  const RoleSelectionPage({super.key});
+
   @override
   _RoleSelectionPageState createState() => _RoleSelectionPageState();
 }
 
 class _RoleSelectionPageState extends State<RoleSelectionPage> {
-  late PageController _pageController;
-  int _currentIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController();
-    _pageController.addListener(() {
-      if (_pageController.page != null) {
-        setState(() {
-          _currentIndex = _pageController.page!.toInt();
-        });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
+  void _navigateToLogin(BuildContext context, String role) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LoginPage(role: role),
+      ),
+    );
   }
 
   @override
@@ -60,43 +49,35 @@ class _RoleSelectionPageState extends State<RoleSelectionPage> {
             ),
             const SizedBox(height: 30),
             GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, '/customerLogin'); // Define route
-              },
+              onTap: () => _navigateToLogin(context, 'customer'),
               child: Stack(
                 alignment: Alignment.bottomCenter,
                 children: [
                   CircleAvatar(
-                    radius: 110, // Image size
+                    radius: 110,
                     backgroundColor: Colors.purple,
                     child: ClipOval(
                       child: Image.asset(
-                        'assets/images/customer.png', // Path to the image
+                        'assets/images/customer.png',
                         fit: BoxFit.cover,
-                        width: 350, // Image width
-                        height: 350, // Image height
+                        width: 350,
+                        height: 350,
                       ),
                     ),
                   ),
                   Positioned(
-                    bottom: 0, // Positioned at the bottom
+                    bottom: 0,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/customerLogin');
-                      },
+                      onPressed: () => _navigateToLogin(context, 'customer'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.purple, // Background color
+                        backgroundColor: Colors.purple,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4), // Rounded corners
+                          borderRadius: BorderRadius.circular(4),
                         ),
                       ),
                       child: const Text(
                         "Customer",
-                        style: TextStyle(
-                          fontSize: 25,
-                          color: Colors.white,
-                          //fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontSize: 25, color: Colors.white),
                       ),
                     ),
                   ),
@@ -105,48 +86,35 @@ class _RoleSelectionPageState extends State<RoleSelectionPage> {
             ),
             const SizedBox(height: 40),
             GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, '/providerLogin'); // Define route
-              },
+              onTap: () => _navigateToLogin(context, 'mealprovider'),
               child: Stack(
                 alignment: Alignment.bottomCenter,
                 children: [
                   CircleAvatar(
-                    radius: 110, // Image size
+                    radius: 110,
                     backgroundColor: Colors.purple,
                     child: ClipOval(
                       child: Image.asset(
-                        'assets/images/meal_provider.png', // Path to the image
+                        'assets/images/meal_provider.png',
                         fit: BoxFit.cover,
-                        width: 350, // Image width
-                        height: 350, // Image height
+                        width: 350,
+                        height: 350,
                       ),
                     ),
                   ),
                   Positioned(
-                    bottom: 0, // Positioned at the bottom
+                    bottom: 0,
                     child: ElevatedButton(
-                      onPressed: () {
-                         Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => LoginPage(),
-                          ),
-                        );
-                      },
+                      onPressed: () => _navigateToLogin(context, 'mealprovider'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.purple, // Background color
+                        backgroundColor: Colors.purple,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20), // Rounded corners
+                          borderRadius: BorderRadius.circular(20),
                         ),
                       ),
                       child: const Text(
                         "Meal Provider",
-                        style: TextStyle(
-                          fontSize: 25,
-                          color: Colors.white,
-                          //fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontSize: 25, color: Colors.white),
                       ),
                     ),
                   ),
@@ -159,6 +127,3 @@ class _RoleSelectionPageState extends State<RoleSelectionPage> {
     );
   }
 }
-
-
-

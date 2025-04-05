@@ -56,8 +56,12 @@ class GetStartedPage extends StatelessWidget {
                 // Skip button
                 TextButton(
                   onPressed: () {
-                    // Navigate to the skip route
-                    Navigator.pop(context); // Example action: Go back
+                   Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>  RoleSelectionPage(),
+                      ),
+                    );
                   },
                   style: TextButton.styleFrom(
                     side: const BorderSide(color: Colors.black, width: 1.0),

@@ -1,12 +1,49 @@
+import 'package:eato/Provider/userProvider.dart';
 import 'package:flutter/material.dart';
-import 'package:eato/pages/auth/signup.dart'; // Import SignUpPage
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 
-class LoginPage extends StatefulWidget {
-  @override
-  _LoginPageState createState() => _LoginPageState();
-}
+import 'package:eato/Model/coustomUser.dart';
+import 'signup.dart';
 
-class _LoginPageState extends State<LoginPage> {
+class LoginPage extends StatelessWidget {
+  final String role;
+
+   LoginPage({required this.role, Key? key}) : super(key: key);
+
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  String getHomeRoute() {
+    return role == 'customer' ? '/customerHome' : '/mealProviderHome';
+  }
+
+  Future<void> loginUser(BuildContext context) async {
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+      // Login using Firebase Authentication
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      // Fetch user data
+      await userProvider.fetchUser(userCredential.user!.uid);
+
+      if (userProvider.currentUser?.role != role) {
+        throw Exception("Role mismatch!");
+      }
+
+      // Navigate to role-specific home
+      Navigator.pushReplacementNamed(context, getHomeRoute());
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Login failed: ${e.toString()}")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,49 +68,29 @@ class _LoginPageState extends State<LoginPage> {
             const Text(
               "Welcome!",
               style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.left,
             ),
             const SizedBox(height: 20),
-            const Text(
-              "Login to your account",
-              style: TextStyle(fontSize: 18),
-              textAlign: TextAlign.left,
-            ), // Push buttons to the bottom
-
+            const Text("Login to your account", style: TextStyle(fontSize: 18)),
             const SizedBox(height: 32),
-           TextField(
-  decoration: InputDecoration(
-    labelText: "Mobile number or Email ID",
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(18.0), // Apply border radius
-    ),
-  ),
-),
-
+            TextField(
+              controller: emailController,
+              decoration: InputDecoration(
+                labelText: "Email ID",
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0)),
+              ),
+            ),
             const SizedBox(height: 16),
             TextField(
+              controller: passwordController,
               obscureText: true,
               decoration: InputDecoration(
                 labelText: "Password",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0),),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0)),
               ),
             ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  // Handle forgot password
-                },
-                child: const Text("Forgot password?"),
-              ),
-            ),
-            const SizedBox(height: 200),
+            const SizedBox(height: 32),
             ElevatedButton(
-              onPressed: () {
-                // If Login is successful, navigate to HomePage
-                Navigator.pushNamed(context, '/home'); // Define your home route
-              },
+              onPressed: () => loginUser(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.purple,
                 foregroundColor: Colors.white,
@@ -87,10 +104,9 @@ class _LoginPageState extends State<LoginPage> {
             const SizedBox(height: 20),
             TextButton(
               onPressed: () {
-                // Navigate to SignUpPage if user wants to sign up
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SignUpPage()),
+                  MaterialPageRoute(builder: (context) => SignUpPage(role: role)),
                 );
               },
               child: const Text("Don't have an account? Sign Up"),
