@@ -1,60 +1,93 @@
-import 'package:eato/Provider/userProvider.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:provider/provider.dart';
+import 'phoneVerification.dart'; // Import the phone verification page
 
-import 'package:eato/Model/coustomUser.dart';
-//simple change
-class SignUpPage extends StatelessWidget {
+class SignUpPage extends StatefulWidget {
   final String role;
 
-  SignUpPage({required this.role, Key? key}) : super(key: key);
+  const SignUpPage({required this.role, Key? key}) : super(key: key);
 
+  @override
+  State<SignUpPage> createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
-  final TextEditingController phoneNumberdController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController phoneNumberController = TextEditingController();
+  bool _isLoading = false;
 
-  Future<void> signUpUser(BuildContext context) async {
+  bool validateForm() {
+    if (nameController.text.trim().isEmpty ||
+        emailController.text.trim().isEmpty ||
+        passwordController.text.isEmpty ||
+        confirmPasswordController.text.isEmpty ||
+        phoneNumberController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("All fields are required")),
+      );
+      return false;
+    }
+
     if (passwordController.text != confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Passwords do not match!")),
       );
-      return;
+      return false;
     }
 
-    try {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-
-      // Create user with Firebase Auth
-      UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
-
-      // Create user object
-      CustomUser newUser = CustomUser(
-        id: userCredential.user!.uid,
-        name: nameController.text.trim(),
-        email: emailController.text.trim(),
-        role: role,
-        phoneNumber: phoneNumberdController.text.trim(),
-      );
-
-      // Update Firestore
-      await userProvider.updateUser(newUser);
-
-      // Navigate to role-specific home
-      Navigator.pushReplacementNamed(
-          context, role == 'customer' ? '/customerHome' : '/mealProviderHome');
-    } catch (e) {
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(emailController.text.trim())) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Sign-up failed: ${e.toString()}")),
+        const SnackBar(content: Text("Please enter a valid email address")),
       );
+      return false;
     }
+
+    final phoneRegex = RegExp(r'^\d{10,15}$');
+    if (!phoneRegex.hasMatch(phoneNumberController.text.trim())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter a valid phone number (10-15 digits)")),
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  void proceedToPhoneVerification() {
+    if (!validateForm()) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    // Prefix with country code (e.g., +94 for srilanka)
+    final String countryCode = '+94';
+    final String fullPhoneNumber = '$countryCode${phoneNumberController.text.trim()}';
+
+    final userData = {
+      'name': nameController.text.trim(),
+      'email': emailController.text.trim(),
+      'password': passwordController.text,
+    };
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PhoneVerificationPage(
+          phoneNumber: fullPhoneNumber,
+          userType: widget.role,
+          isSignUp: true,
+          userData: userData,
+        ),
+      ),
+    );
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
@@ -73,86 +106,96 @@ class SignUpPage extends StatelessWidget {
           child: Text("Back"),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "Welcome!",
-              style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16.0),
-            const Text("Sign up to create a new account.",
-                style: TextStyle(fontSize: 18.0)),
-            const SizedBox(height: 32),
-            TextField(
-              controller: nameController,
-              decoration: InputDecoration(
-                labelText: "Full Name",
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18.0)),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                "Welcome!",
+                style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                labelText: "Email ID",
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18.0)),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: phoneNumberdController,
-              decoration: InputDecoration(
-                labelText: "Phone Number",
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18.0)),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: "Create Password",
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18.0)),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: confirmPasswordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: "Confirm Password",
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18.0)),
-              ),
-            ),
-            const SizedBox(height: 50),
-            ElevatedButton(
-              onPressed: () => signUpUser(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.purple,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(150, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18.0),
+              const SizedBox(height: 16.0),
+              const Text("Sign up to create a new account.",
+                  style: TextStyle(fontSize: 18.0)),
+              const SizedBox(height: 32),
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: "Full Name",
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(18.0)),
                 ),
               ),
-              child: const Text("Sign Up"),
-            ),
-            const SizedBox(height: 20),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Already have an account? Login"),
-            ),
-          ],
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: "Email ID",
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(18.0)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: phoneNumberController,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  labelText: "Phone Number",
+                  hintText: "Enter 10-digit number",
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(18.0)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: "Create Password",
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(18.0)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: confirmPasswordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: "Confirm Password",
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(18.0)),
+                ),
+              ),
+              const SizedBox(height: 50),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : proceedToPhoneVerification,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.purple,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25.0),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text("Sign Up", style: TextStyle(fontSize: 18)),
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text("Already have an account? Login"),
+              ),
+            ],
+          ),
         ),
       ),
     );

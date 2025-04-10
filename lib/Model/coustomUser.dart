@@ -1,61 +1,63 @@
-import 'package:eato/Model/Food&Store.dart';
-
 class CustomUser {
   final String id;
-  final String role;
   final String name;
   final String email;
-  final String phoneNumber;
-  final Store? myStore; // Marked nullable for users without a store
+  final String? phoneNumber;
+  final String userType; // Main field used for role identification
+  final String? profileImageUrl;
 
   CustomUser({
     required this.id,
-    required this.role,
     required this.name,
     required this.email,
-    required this.phoneNumber,
-    this.myStore,
+    this.phoneNumber,
+    required this.userType,
+    this.profileImageUrl,
   });
 
-  // Factory method to create a CustomUser from Firestore data
-  factory CustomUser.fromFirestore(Map<String, dynamic> data, String id) {
-    return CustomUser(
-      id: id,
-      role: data['role'] ?? '',
-      name: data['name'] ?? '',
-      email: data['email'] ?? '',
-      phoneNumber: data['phoneNumber'] ?? '',
-      myStore: data['myStore'] != null
-          ? Store.fromFirestore(data['myStore'], data['myStore']['id'] ?? '')
-          : null, // Parse the store if it exists
-    );
-  }
-
-  // Convert CustomUser to Map for Firestore
+  // Convert a CustomUser instance to a Map for Firestore
   Map<String, dynamic> toMap() {
     return {
-      'role': role,
+      'id': id,
       'name': name,
       'email': email,
       'phoneNumber': phoneNumber,
-      'myStore': myStore?.toMap(), // Convert the store to a Map
+      'userType': userType,
+      'profileImageUrl': profileImageUrl,
     };
   }
-   CustomUser copyWith({
+
+  // Create a new CustomUser instance with updated fields
+  CustomUser copyWith({
     String? id,
-    String? role,
     String? name,
     String? email,
     String? phoneNumber,
-    Store? myStore,
+    String? userType,
+    String? profileImageUrl,
   }) {
     return CustomUser(
       id: id ?? this.id,
-      role: role ?? this.role,
       name: name ?? this.name,
       email: email ?? this.email,
       phoneNumber: phoneNumber ?? this.phoneNumber,
-      myStore: myStore ?? this.myStore,
+      userType: userType ?? this.userType,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
     );
   }
+
+  // Create a CustomUser instance from Firestore data
+  factory CustomUser.fromMap(Map<String, dynamic> map) {
+    return CustomUser(
+      id: map['id'] ?? '',
+      name: map['name'] ?? '',
+      email: map['email'] ?? '',
+      phoneNumber: map['phoneNumber'],
+      userType: map['userType'] ?? '', // Primary field for role
+      profileImageUrl: map['profileImageUrl'],
+    );
+  }
+
+  // Added for role check compatibility
+  String get role => userType; // Alias for userType
 }

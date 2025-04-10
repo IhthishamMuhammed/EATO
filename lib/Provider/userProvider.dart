@@ -1,97 +1,72 @@
-import 'package:eato/Model/coustomUser.dart';
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../Model/Food&Store.dart'; // Adjust the path to your Store model file
- // Adjust the path to your CustomUser model file
+import 'package:flutter/material.dart';
+import 'package:eato/Model/coustomUser.dart';
 
 class UserProvider with ChangeNotifier {
   CustomUser? _currentUser;
+  bool _isLoading = false;
 
-  // Getter for the current user
+  bool get isLoading => _isLoading;
   CustomUser? get currentUser => _currentUser;
 
-  /// Fetch user data by ID from Firestore and update the local state
+  // Setter method for current user
+  set currentUser(CustomUser? user) {
+    _currentUser = user;
+    notifyListeners();
+  }
+
+  // Method to set current user (for backward compatibility)
+  void setCurrentUser(CustomUser user) {
+    _currentUser = user;
+    notifyListeners();
+  }
+
+  // Fetch user from Firestore
   Future<void> fetchUser(String userId) async {
+    _isLoading = true;
+    notifyListeners();
+    
     try {
-      final snapshot = await FirebaseFirestore.instance
+      final DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
           .get();
 
-      if (snapshot.exists && snapshot.data() != null) {
-        final data = snapshot.data()!;
-        _currentUser = CustomUser.fromFirestore(data, snapshot.id);
-        notifyListeners();
-      } else {
-        print('No user found with ID: $userId');
+      if (userDoc.exists) {
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+        _currentUser = CustomUser.fromMap(userData);
       }
     } catch (e) {
-      print('Error fetching user with ID $userId: $e');
+      print('Error fetching user: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  /// Update user data in Firestore
-  Future<void> updateUser(CustomUser user) async {
+  // Update user data
+  Future<void> updateUser(CustomUser updatedUser) async {
+    _isLoading = true;
+    notifyListeners();
+    
     try {
       await FirebaseFirestore.instance
           .collection('users')
-          .doc(user.id)
-          .set(user.toMap(), SetOptions(merge: true));
-      _currentUser = user;
-      notifyListeners();
+          .doc(updatedUser.id)
+          .update(updatedUser.toMap());
+
+      _currentUser = updatedUser;
     } catch (e) {
       print('Error updating user: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  /// Check if the current user owns a store
-  bool isStoreOwner() {
-    return _currentUser?.myStore != null;
-  }
-
-  /// Clear the current user data (for logout scenarios)
-  void clearUser() {
+  // Method to clear current user (for logout)
+  void clearCurrentUser() {
     _currentUser = null;
     notifyListeners();
-  }
-
-  /// Add or update the store of the current user
-  Future<void> addOrUpdateStore(Store store) async {
-    if (_currentUser == null) {
-      print('Error: No logged-in user to associate a store with');
-      return;
-    }
-
-    try {
-      final updatedUser = _currentUser!.copyWith(myStore: store);
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(updatedUser.id)
-          .set(updatedUser.toMap(), SetOptions(merge: true));
-      _currentUser = updatedUser;
-      notifyListeners();
-    } catch (e) {
-      print('Error adding/updating store: $e');
-    }
-  }
-
-  /// Remove the store from the current user's profile
-  Future<void> removeStore() async {
-    if (_currentUser == null || _currentUser!.myStore == null) {
-      print('Error: No store to remove for the current user');
-      return;
-    }
-
-    try {
-      final updatedUser = _currentUser!.copyWith(myStore: null);
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(updatedUser.id)
-          .set(updatedUser.toMap(), SetOptions(merge: true));
-      _currentUser = updatedUser;
-      notifyListeners();
-    } catch (e) {
-      print('Error removing store: $e');
-    }
   }
 }
